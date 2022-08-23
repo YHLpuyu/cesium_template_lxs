@@ -1,4 +1,4 @@
-import * as Cesium from "cesium";
-import "cesium/Widgets/widgets.css";
-
-const viewer=new Cesium.Viewer("cesiumContainer");
+import "./view";
+import "./box";
+import "./texture3D";
+import "./lxs_volumn.js";

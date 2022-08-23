@@ -7,6 +7,9 @@ const CopyWebpackPlugin=require("copy-webpack-plugin")
 
 module.exports = {
     context:__dirname,
+    optimization:{
+        minimize: false, 
+    },
     entry:{
         app:"./src/index.js"
     },
