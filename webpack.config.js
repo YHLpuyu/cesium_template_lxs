@@ -1,4 +1,4 @@
-const cesiumSource = "cesium/Source";
+const cesiumSource = "cesium-main/Source";
 const cesiumWorkers = "../Build/Cesium/Workers"
 const path = require("path")
 const webpack = require("webpack");

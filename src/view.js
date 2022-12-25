@@ -1,4 +1,4 @@
-/// <reference path="../cesium/Build/Cesium/Cesium.d.ts"/>
+/// <reference path="../cesium-main/Source/Cesium.js"/>
 
 import * as Cesium from "cesium";
 import "cesium/Widgets/widgets.css";

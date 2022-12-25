@@ -1,5 +1,5 @@
 import * as Cesium from "cesium";
-import "./texture3D.js";
+import {Texture3D} from "./texture3D.js";
 import { viewer } from "./view";
 import { noise } from "./perlin.js";
 
@@ -17,7 +17,7 @@ const fragmentShaderSource = `precision mediump sampler3D;
     float getData(vec3 pos_lxs){
         vec3 pos=pos_lxs/(halfdim*2.);
         
-        return texture(volumnTexture_lxs,pos).a;
+        return texture(volumnTexture_lxs,pos).r;
     }
     vec2 hitBox( vec3 orig, vec3 dir ) {
         vec3 box_min = vec3( -halfdim );
@@ -61,7 +61,8 @@ const fragmentShaderSource = `precision mediump sampler3D;
         float delta=min(inc.x,min(inc.y,inc.z));
         delta/=200.;
 
-        for(float i=0.;i<500.0;i+=1.){
+        // for(float i=0.;i<500.0;i+=1.){
+        for ( float t = bounds.x; t < bounds.y; t += delta ){
             float d=getData(p+halfdim);
             if(d>0.6){
                 color.rgb=normal(p+0.5)*0.5+(p*1.5+0.25);
@@ -69,8 +70,8 @@ const fragmentShaderSource = `precision mediump sampler3D;
                 break;
             }
             p+=rayDir*delta;
-            bounds.x+=delta;
-            if(bounds.x>bounds.y) break;
+            // bounds.x+=delta;
+            // if(bounds.x>bounds.y) break;
         }
         if(color.a==0.) discard;
 
@@ -155,32 +156,35 @@ class lxs_primitive {
         });
     }
     getTexture(context) {
-        const texture_size = Math.ceil(Math.sqrt(this.data.length));
-        const texturetypearray = new Uint8Array(texture_size * texture_size);
-        for (let i = 0; i < this.data.length; i++) {
-            texturetypearray[i] = this.data[i];
-        }
-        for (let i = this.data.length; i < texturetypearray.length; i++) {
-            texturetypearray[i] = 0;
+        if(!this.texture){
+            const texture_size = Math.ceil(Math.sqrt(this.data.length));
+            const texturetypearray=new Uint8Array(8*8*8);
+            for (let i = 0; i < this.data.length; i++) {
+                texturetypearray[i] = this.data[i];
+            }
+            this.texture=new Texture3D({
+                width:8,
+                height:8,
+                depth:8,
+                context: context,
+                flipY: false,
+                pixelFormat: Cesium.PixelFormat.ALPHA,
+                pixelDataType: Cesium.ComponentDatatype.fromTypedArray(
+                    texturetypearray
+                ),
+                source: {
+                    width: texture_size,
+                    height: texture_size,
+                    arrayBufferView: texturetypearray,
+                },
+                sampler: new Cesium.Sampler({
+                    minificationFilter: Cesium.TextureMinificationFilter.NEAREST,
+                    magnificationFilter: Cesium.TextureMagnificationFilter.NEAREST,
+                }),
+            })
         }
 
-        return new Texture3D({
-            context: context,
-            flipY: false,
-            pixelFormat: Cesium.PixelFormat.ALPHA,
-            pixelDataType: Cesium.ComponentDatatype.fromTypedArray(
-                texturetypearray
-            ),
-            source: {
-                width: texture_size,
-                height: texture_size,
-                arrayBufferView: texturetypearray,
-            },
-            sampler: new Cesium.Sampler({
-                minificationFilter: Cesium.TextureMinificationFilter.NEAREST,
-                magnificationFilter: Cesium.TextureMagnificationFilter.NEAREST,
-            }),
-        })
+        return this.texture;
     }
     update(frameState) {
         if (!this.drawCommand) {

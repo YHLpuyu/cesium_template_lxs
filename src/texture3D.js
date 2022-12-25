@@ -1,4 +1,4 @@
-/// <reference path="../cesium/Build/Cesium/Cesium.d.ts"/>
+/// <reference path="../cesium-main/Source/Cesium.js"/>
 
 import {
     Cartesian2,
@@ -28,6 +28,7 @@ function Texture3D(options) {
     let width = options.width;
     let height = options.height;
     let depth = options.depth;
+    let source = options.source;
 
     const pixelFormat = defaultValue(options.pixelFormat, PixelFormat.RGBA);
     const pixelDatatype = defaultValue(options.pixelDatatype, PixelDatatype.UNSIGNED_BYTE);
@@ -39,7 +40,7 @@ function Texture3D(options) {
         )
     }
 
-    Check.typeof.number.greaterThan("width", width, 0);
+    Check.typeOf.number.greaterThan("width", width, 0);
 
     if (width > ContextLimits.maximumTextureSize) {
         throw new DeveloperError(
@@ -47,7 +48,7 @@ function Texture3D(options) {
         );
     }
 
-    Check.typeof.number.greaterThan("height", height, 0);
+    Check.typeOf.number.greaterThan("height", height, 0);
 
     if (height > ContextLimits.maximumTextureSize) {
         throw new DeveloperError(
@@ -55,7 +56,7 @@ function Texture3D(options) {
         );
     }
 
-    Check.typeof.number.greaterThan("dimension", depth, 0);
+    Check.typeOf.number.greaterThan("dimensions", depth, 0);
 
     if (depth > ContextLimits.maximumTextureSize) {
         throw new DeveloperError(
@@ -67,7 +68,7 @@ function Texture3D(options) {
         throw new DeveloperError("Invalid options.pixelFormat.");
     }
 
-    if (!isCompressed && !PixelDatatype.validate(pixelDatatype)) {
+    if (!PixelDatatype.validate(pixelDatatype)) {
         throw new DeveloperError("Invalid options.pixelDatatype.");
     }
 
@@ -104,7 +105,7 @@ function Texture3D(options) {
                 PixelDatatype.toWebGLConstant(pixelDatatype, context),
                 arrayBufferView
             );
-            initialized = false;
+            initialized = true;
         }
     }
     gl.bindTexture(textureTarget, null);
@@ -227,4 +228,4 @@ Texture3D.prototype.destory=function(){
     return destroyObject(this);
 };
 
-export default Texture3D;
+export {Texture3D};
