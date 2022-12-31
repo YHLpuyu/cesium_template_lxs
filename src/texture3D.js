@@ -31,7 +31,7 @@ function Texture3D(options) {
     let source = options.source;
 
     const pixelFormat = defaultValue(options.pixelFormat, PixelFormat.RGBA);
-    const pixelDatatype = defaultValue(options.pixelDatatype, PixelDatatype.UNSIGNED_BYTE);
+    const pixelDatatype = defaultValue(options.pixelDataType, PixelDatatype.UNSIGNED_BYTE);
     const internalFormat = PixelFormat.toInternalFormat(pixelFormat, pixelDatatype, context);
 
     if (!defined(width) || !defined(height) || !defined(depth)) {
@@ -77,6 +77,7 @@ function Texture3D(options) {
     const textureTarget = gl.TEXTURE_3D;
     const texture = gl.createTexture();
 
+    const lxs= gl.getParameter(gl.ACTIVE_TEXTURE);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(textureTarget, texture);
     let unpackAlignment = 4;

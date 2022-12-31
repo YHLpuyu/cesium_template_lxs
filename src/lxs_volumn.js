@@ -8,7 +8,8 @@ const fragmentShaderSource = `precision mediump sampler3D;
     uniform float slice_size;
     uniform sampler3D volumnTexture_lxs;
     uniform vec3 halfdim;
-    
+
+    out vec4 color;
 
     varying vec3 vOrigin;
     varying vec3 vDirection;
@@ -17,7 +18,7 @@ const fragmentShaderSource = `precision mediump sampler3D;
     float getData(vec3 pos_lxs){
         vec3 pos=pos_lxs/(halfdim*2.);
         
-        return texture(volumnTexture_lxs,pos).r;
+        return texture(volumnTexture_lxs,pos).a;
     }
     vec2 hitBox( vec3 orig, vec3 dir ) {
         vec3 box_min = vec3( -halfdim );
@@ -49,7 +50,6 @@ const fragmentShaderSource = `precision mediump sampler3D;
 
     void main()
     {
-        vec4 color=vec4(0);
         vec3 rayDir=normalize(vDirection);
         vec2 bounds=hitBox(vOrigin,rayDir);
 
@@ -61,21 +61,18 @@ const fragmentShaderSource = `precision mediump sampler3D;
         float delta=min(inc.x,min(inc.y,inc.z));
         delta/=200.;
 
-        // for(float i=0.;i<500.0;i+=1.){
         for ( float t = bounds.x; t < bounds.y; t += delta ){
             float d=getData(p+halfdim);
             if(d>0.6){
                 color.rgb=normal(p+0.5)*0.5+(p*1.5+0.25);
+                // color=vec4(d);
                 color.a=1.;
                 break;
             }
             p+=rayDir*delta;
-            // bounds.x+=delta;
-            // if(bounds.x>bounds.y) break;
         }
-        if(color.a==0.) discard;
 
-        gl_FragColor=color;
+        if(color.a==0.) discard;
     }
    `;
 const vertexShaderSource = `
@@ -158,24 +155,20 @@ class lxs_primitive {
     getTexture(context) {
         if(!this.texture){
             const texture_size = Math.ceil(Math.sqrt(this.data.length));
-            const texturetypearray=new Uint8Array(8*8*8);
-            for (let i = 0; i < this.data.length; i++) {
-                texturetypearray[i] = this.data[i];
-            }
             this.texture=new Texture3D({
-                width:8,
-                height:8,
-                depth:8,
+                width:size,
+                height:size,
+                depth:size,
                 context: context,
                 flipY: false,
                 pixelFormat: Cesium.PixelFormat.ALPHA,
                 pixelDataType: Cesium.ComponentDatatype.fromTypedArray(
-                    texturetypearray
+                    this.data
                 ),
                 source: {
                     width: texture_size,
                     height: texture_size,
-                    arrayBufferView: texturetypearray,
+                    arrayBufferView: this.data,
                 },
                 sampler: new Cesium.Sampler({
                     minificationFilter: Cesium.TextureMinificationFilter.NEAREST,
@@ -193,7 +186,7 @@ class lxs_primitive {
         frameState.commandList.push(this.drawCommand);
     }
 }
-const dim_lxs = new Cesium.Cartesian3(3, 2, 1);
+const dim_lxs = new Cesium.Cartesian3(1, 1, 1);
 var geometry = Cesium.BoxGeometry.fromDimensions({
     vertexFormat: Cesium.VertexFormat.POSITION_AND_ST,
     dimensions: dim_lxs,
@@ -211,7 +204,7 @@ const primitive_modelMatrix = Cesium.Matrix4.multiplyByTranslation(
 /**
  * 生成体数据
  */
-const size = 8;
+const size = 128;
 //data在0~255之间
 const data = new Uint8Array(size * size * size);
 let dx, dy, dz;
@@ -222,8 +215,9 @@ for (let z = 0; z < size; z++) {
             dx = x * 1.0 / size;
             dy = y * 1.0 / size;
             dz = z * 1.0 / size;
-            const d = noise(dx * 6.5, y * 6.5, z * 6.5);
+            const d = noise(dx * 6.5, dy * 6.5, dz * 6.5);
             data[i++] = d * 128 + 128;
+            // data[i++]=0;
         }
     }
 }
